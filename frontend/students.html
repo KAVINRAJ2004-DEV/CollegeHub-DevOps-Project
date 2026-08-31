@@ -1,1 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CollegeHub | Student Details</title>
 
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f4f7fb;
+            color: #142033;
+        }
+
+        header {
+            background: #101a2b;
+            color: white;
+            padding: 22px 7%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        header h2 {
+            margin: 0;
+            font-size: 28px;
+        }
+
+        header h2 span {
+            color: #3290ff;
+        }
+
+        .back {
+            background: #267cf0;
+            color: white;
+            text-decoration: none;
+            padding: 10px 18px;
+            border-radius: 8px;
+        }
+
+        main {
+            width: 86%;
+            margin: 45px auto;
+        }
+
+        h1 {
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            color: #667085;
+            margin-bottom: 25px;
+        }
+
+        .table-box {
+            background: white;
+            border-radius: 14px;
+            padding: 25px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 850px;
+        }
+
+        th {
+            background: #101a2b;
+            color: white;
+            padding: 14px;
+            text-align: left;
+        }
+
+        td {
+            padding: 14px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        tr:hover {
+            background: #f8fafc;
+        }
+
+        .status {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: bold;
+        }
+
+        .active {
+            background: #dff7e8;
+            color: #16834b;
+        }
+
+        .inactive {
+            background: #eeeeee;
+            color: #666666;
+        }
+
+        #message {
+            margin-top: 20px;
+            color: #d92d20;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <h2>College<span>Hub</span></h2>
+    <a class="back" href="/admin.html">Back to Admin</a>
+</header>
+
+<main>
+
+    <h1>All Student Details</h1>
+
+    <p class="subtitle">
+        Complete student records from the CollegeHub backend.
+    </p>
+
+    <div class="table-box">
+
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Student Name</th>
+                    <th>Email</th>
+                    <th>Department</th>
+                    <th>Year</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+
+            <tbody id="students">
+            </tbody>
+        </table>
+
+        <div id="message"></div>
+
+    </div>
+
+</main>
+
+<script>
+
+const API = "/api";
+
+async function loadStudents() {
+
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+        window.location.href = "/admin.html";
+        return;
+    }
+
+    try {
+
+        const response = await fetch(API + "/students", {
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": "Bearer " + token
+            }
+        });
+
+        const students = await response.json();
+
+        if (!response.ok) {
+            throw new Error(students.message || "Unable to load students");
+        }
+
+        const table = document.getElementById("students");
+
+        table.innerHTML = students.map(student => {
+
+            const statusClass =
+                student.status.toLowerCase() === "active"
+                ? "active"
+                : "inactive";
+
+            return `
+                <tr>
+                    <td><b>${escapeHTML(student.student_code)}</b></td>
+                    <td>${escapeHTML(student.name)}</td>
+                    <td>${escapeHTML(student.email)}</td>
+                    <td>${escapeHTML(student.department)}</td>
+                    <td>Year ${student.year}</td>
+                    <td>
+                        <span class="status ${statusClass}">
+                            ${escapeHTML(student.status)}
+                        </span>
+                    </td>
+                </tr>
+            `;
+
+        }).join("");
+
+    } catch (error) {
+
+        document.getElementById("message").textContent =
+            error.message || "Request failed";
+
+    }
+}
+
+function escapeHTML(value) {
+
+    return String(value).replace(/[&<>"']/g, function(character) {
+
+        return {
+            "&": "&amp;",
+            "<": "&lt;",
+            ">": "&gt;",
+            '"': "&quot;",
+            "'": "&#039;"
+        }[character];
+
+    });
+}
+
+loadStudents();
+
+</script>
+
+</body>
+</html>
