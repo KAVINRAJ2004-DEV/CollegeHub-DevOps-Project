@@ -25,9 +25,13 @@ pipeline {
             }
         }
 
-        stage('Deploy') {
+        stage('Deploy to AWS EC2') {
             steps {
-                echo 'Next phase: configure Jenkins credentials and automated deployment to AWS EC2.'
+                sshagent(['collegehub-aws-key']) {
+                    bat '''
+                        ssh -o StrictHostKeyChecking=no ubuntu@15.252.173.68 "docker --version"
+                    '''
+                }
             }
         }
     }
