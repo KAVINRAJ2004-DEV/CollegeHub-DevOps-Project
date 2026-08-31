@@ -28,14 +28,18 @@ pipeline {
         stage('Deploy to AWS EC2') {
             steps {
                 withCredentials([
-                    sshUserPrivateKey(
+                    file(
                         credentialsId: 'collegehub-aws-key',
-                        keyFileVariable: 'SSH_KEY',
-                        usernameVariable: 'SSH_USER'
+                        variable: 'SSH_KEY'
                     )
                 ]) {
                     bat '''
-                        ssh -i "%SSH_KEY%" -o StrictHostKeyChecking=no %SSH_USER%@15.252.173.68 "docker --version"
+                        echo Testing SSH connection to AWS EC2...
+
+                        icacls "%SSH_KEY%" /inheritance:r
+                        icacls "%SSH_KEY%" /grant:r SYSTEM:F
+
+                        ssh -i "%SSH_KEY%" -o StrictHostKeyChecking=no ec2-user@15.252.173.68 "hostname && echo SSH_TO_PUBLIC_EC2_SUCCESS"
                     '''
                 }
             }
