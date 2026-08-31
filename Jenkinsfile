@@ -27,9 +27,15 @@ pipeline {
 
         stage('Deploy to AWS EC2') {
             steps {
-                sshagent(['collegehub-aws-key']) {
+                withCredentials([
+                    sshUserPrivateKey(
+                        credentialsId: 'collegehub-aws-key',
+                        keyFileVariable: 'SSH_KEY',
+                        usernameVariable: 'SSH_USER'
+                    )
+                ]) {
                     bat '''
-                        ssh -o StrictHostKeyChecking=no ubuntu@15.252.173.68 "docker --version"
+                        ssh -i "%SSH_KEY%" -o StrictHostKeyChecking=no %SSH_USER%@15.252.173.68 "docker --version"
                     '''
                 }
             }
