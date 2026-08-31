@@ -1,0 +1,8 @@
+node_modules/
+backend/collegehub.db
+*.log
+.env
+.env.*
+*.pem
+*.ppk
+.DS_Store
