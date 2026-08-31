@@ -25,19 +25,19 @@ pipeline {
             }
         }
 
-        stage('Deploy') {
+        stage('Deploy to AWS') {
             steps {
-                withCredentials([file(credentialsId: 'collegehub-aws-key', variable: 'SSH_KEY')]) {
+                withCredentials([
+                    file(credentialsId: 'collegehub-aws-key', variable: 'SSH_KEY')
+                ]) {
                     bat '''
-                        copy /Y "%SSH_KEY%" "%WORKSPACE%\\CollegeHub-Key.pem"
+                        echo Fixing SSH key permissions...
+                        icacls "%SSH_KEY%" /inheritance:r
+                        icacls "%SSH_KEY%" /grant:r SYSTEM:F
 
-                        icacls "%WORKSPACE%\\CollegeHub-Key.pem" /inheritance:r
-                        icacls "%WORKSPACE%\\CollegeHub-Key.pem" /grant:r "%USERNAME%:R"
-
-                        ssh -i "%WORKSPACE%\\CollegeHub-Key.pem" -o StrictHostKeyChecking=no ec2-user@15.252.173.68 "hostname && echo SSH_TO_PUBLIC_EC2_SUCCESS"
-
-                        del /Q "%WORKSPACE%\\CollegeHub-Key.pem"
-                    '''
+                        echo Connecting to Public EC2...
+                        ssh -i "%SSH_KEY%" -o StrictHostKeyChecking=no ec2-user@15.252.173.68 "hostname && echo SSH_TO_PUBLIC_EC2_SUCCESS"
+                    }
                 }
             }
         }
